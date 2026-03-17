@@ -10,6 +10,7 @@ import base64
 from clean_data import clean_dataset
 from analytics import auto_charts, quick_stats
 from insights  import generate_insights
+from pdf_report import generate_pdf
 
 # ── Page config ────────────────────────────────────────────────────────────────
 st.set_page_config(
@@ -218,7 +219,7 @@ with tab_clean:
 # ── Tab 2: Charts ──────────────────────────────────────────────────────────────
 with tab_charts:
     if not charts:
-        st.warning("Not enough numeric or categorical data to generate charts.")
+        st.warning("Not enough data to generate charts.")
     else:
         for i in range(0, len(charts), 2):
             row = st.columns(2)
@@ -226,36 +227,25 @@ with tab_charts:
                 if i + j < len(charts):
                     c = charts[i + j]
                     with col:
-                        st.markdown(f"**{c['title']}**")
-                        st.image(
-                            f"data:image/png;base64,{c['img']}",
-                            use_container_width=True
-                        )
+                        st.plotly_chart(c["fig"], use_container_width=True)
 
 
 # ── Tab 3: AI Insights ─────────────────────────────────────────────────────────
 with tab_ai:
-    st.markdown('<div class="section-header">AI-Generated Business Insights</div>',
-                unsafe_allow_html=True)
-
+    st.markdown('<div class="section-header">AI-Generated Business Insights</div>', unsafe_allow_html=True)
     openai_key = st.text_input(
         "OpenAI API Key (optional — leave blank for free local AI or rule-based analysis)",
         type="password",
         placeholder="sk-…",
-        help="If you have an OpenAI key, paste it here for GPT-4o-mini analysis. Leave blank otherwise."
+        help="If you have an OpenAI key, paste it here for GPT-4o-mini analysis."
     )
-
     if st.button("Generate Insights"):
         import os
         if openai_key:
             os.environ["OPENAI_API_KEY"] = openai_key
-
         with st.spinner("Analysing your data…"):
             result = generate_insights(cleaned_df, stats)
-
         st.markdown(f'<div class="insight-box">{result}</div>', unsafe_allow_html=True)
-
-        # Download insights
         st.download_button(
             "⬇ Download Insights as Text",
             data=result,
@@ -265,8 +255,20 @@ with tab_ai:
     else:
         st.info("Click **Generate Insights** above to get an AI analysis of your dataset.")
 
+    st.markdown("---")
+    if st.button("Generate PDF Report"):
+        with st.spinner("Building PDF report..."):
+            from insights import generate_insights as gi
+            insights_text = gi(cleaned_df, stats)
+            pdf_path = generate_pdf(cleaned_df, stats, insights_text, "report.pdf")
+            with open(pdf_path, "rb") as f:
+                st.download_button(
+                    "⬇ Download PDF Report",
+                    data=f.read(),
+                    file_name="analysis_report.pdf",
+                    mime="application/pdf"
+                )
 
-# ── Tab 4: Raw data ────────────────────────────────────────────────────────────
 with tab_raw:
     st.markdown('<div class="section-header">Original Uploaded Data</div>', unsafe_allow_html=True)
     try:
