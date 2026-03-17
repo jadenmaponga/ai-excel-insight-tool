@@ -37,6 +37,19 @@ Average {metric}: {avg:,.2f}
 
 Be concise and business-focused. Max 250 words."""
 
+def _best_cat(df):
+    cat_cols = df.select_dtypes(include="object").columns.tolist()
+    skip = ["date","time","id","code","currency","order","created","updated"]
+    cat_cols = [c for c in cat_cols if not any(k in c.lower() for k in skip)]
+    preferred = ["product_name","category","region","product","type","segment"]
+    return next((c for c in preferred if c in cat_cols), cat_cols[0] if cat_cols else None)
+
+def _best_val(df):
+    num_cols = df.select_dtypes(include="number").columns.tolist()
+    num_cols = [c for c in num_cols if not any(k in c for k in ["id","index","row"])]
+    preferred = ["total_sales","total_revenue","revenue","sales","amount","total"]
+    return next((c for c in preferred if c in num_cols), num_cols[0] if num_cols else None)
+
 def _rule_based_insights(df, stats):
     lines = []
     metric = stats.get("metric_name", "metric")
@@ -47,28 +60,19 @@ def _rule_based_insights(df, stats):
     lines.append(f"Dataset Overview: {rows} records analysed across {stats.get('columns',0)} columns.")
     lines.append(f"Total {metric}: {total:,.2f} | Average per record: {avg:,.2f}")
 
-    # Use the same best value column as stats — skip id columns
-    num_cols = [c for c in df.select_dtypes(include="number").columns
-                if not any(k in c.lower() for k in ["id","index","row","num"])]
-    cat_cols = [c for c in df.select_dtypes(include="object").columns
-                if not any(k in c.lower() for k in ["id","currency","code","unknown"])]
+    val = _best_val(df)
+    cat = _best_cat(df)
 
-    preferred = ["total_sales","total_revenue","revenue","sales","amount","total"]
-    val = next((c for c in preferred if c in num_cols), num_cols[0] if num_cols else None)
-
-    if cat_cols and val:
-        cat = cat_cols[0]
+    if cat and val:
         grouped = df.groupby(cat)[val].sum()
         top = grouped.idxmax()
         top_val = grouped.max()
         bottom = grouped.idxmin()
         bottom_val = grouped.min()
-        lines.append(f"Top performer: {top} leads '{cat}' with {top_val:,.2f} in {val.replace('_',' ')}.")
+        share = (top_val / grouped.sum()) * 100
+        lines.append(f"Top performer: {top} leads '{cat.replace('_',' ')}' with {top_val:,.2f} in {val.replace('_',' ')}.")
+        lines.append(f"Market share: {top} accounts for {share:.1f}% of total {val.replace('_',' ')}.")
         lines.append(f"Lowest performer: {bottom} recorded {bottom_val:,.2f} — worth investigating.")
-
-        if len(grouped) > 2:
-            share = (top_val / grouped.sum()) * 100
-            lines.append(f"Concentration: {top} accounts for {share:.1f}% of total {val.replace('_',' ')}.")
 
     if val and df[val].std() > df[val].mean() * 0.5:
         lines.append(f"High variability detected in {val.replace('_',' ')} — consider segmenting further.")

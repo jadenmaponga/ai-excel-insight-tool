@@ -9,9 +9,9 @@ def _best_col(df):
 
 def _best_cat(df):
     cat_cols = df.select_dtypes(include="object").columns.tolist()
-    skip = ["date","time","id","code","currency","unknown","name_id"]
-    cat_cols = [c for c in cat_cols if not any(k in c.lower() for k in skip)]
-    preferred = ["product_name","category","region","product","type","segment"]
+    skip_keywords = ["date","time","id","code","currency","order","created","updated"]
+    cat_cols = [c for c in cat_cols if not any(k in c.lower() for k in skip_keywords)]
+    preferred = ["product_name","category","region","product","type","segment","name"]
     return next((c for c in preferred if c in cat_cols), cat_cols[0] if cat_cols else None)
 
 def quick_stats(df):
@@ -102,10 +102,11 @@ def auto_charts(df):
         )
         charts.append({"title": "Trend Over Time", "fig": fig3})
 
-    cat_cols = [c for c in df.select_dtypes(include="object").columns
-                if not any(k in c.lower() for k in ["date","time","id","currency"])]
-    if len(cat_cols) >= 2 and cat:
-        cat2 = next((c for c in cat_cols if c != cat), None)
+    all_cat_cols = [c for c in df.select_dtypes(include="object").columns
+                    if not any(k in c.lower() for k in
+                    ["date","time","id","currency","order","created"])]
+    if len(all_cat_cols) >= 2 and cat:
+        cat2 = next((c for c in all_cat_cols if c != cat), None)
         if cat2:
             grouped3 = df.groupby(cat2)[val].sum().nlargest(8).reset_index()
             grouped3.columns = [cat2, val]

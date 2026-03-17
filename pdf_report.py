@@ -3,7 +3,7 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import cm
 from reportlab.lib import colors
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, Image
-from reportlab.lib.enums import TA_CENTER, TA_LEFT
+from reportlab.lib.enums import TA_CENTER
 import pandas as pd
 import matplotlib
 matplotlib.use("Agg")
@@ -20,23 +20,30 @@ WHITE = colors.white
 BLACK = colors.HexColor("#1E293B")
 PALETTE = ["#2563EB","#10B981","#F59E0B","#EF4444","#8B5CF6","#EC4899"]
 
-def _best_col(df):
+def _best_val(df):
     num_cols = df.select_dtypes(include="number").columns.tolist()
+    num_cols = [c for c in num_cols if not any(k in c for k in ["id","index","row"])]
     preferred = ["total_sales","total_revenue","revenue","sales","amount","total"]
     return next((c for c in preferred if c in num_cols), num_cols[0] if num_cols else None)
 
-def _make_chart(df, chart_type="bar"):
-    num_cols = df.select_dtypes(include="number").columns.tolist()
+def _best_cat(df):
     cat_cols = df.select_dtypes(include="object").columns.tolist()
-    val = _best_col(df)
-    if not val or not cat_cols:
+    skip = ["date","time","id","code","currency","order","created","updated","name"]
+    cat_cols = [c for c in cat_cols if not any(k in c.lower() for k in skip)]
+    preferred = ["product_name","category","region","product","type","segment"]
+    return next((c for c in preferred if c in cat_cols), cat_cols[0] if cat_cols else None)
+
+def _make_chart(df, chart_type="bar"):
+    val = _best_val(df)
+    cat = _best_cat(df)
+    if not val or not cat:
         return None
-    cat = cat_cols[0]
     grouped = df.groupby(cat)[val].sum().nlargest(8)
     fig, ax = plt.subplots(figsize=(7, 3.5), facecolor="white")
     ax.set_facecolor("white")
     if chart_type == "bar":
-        bars = ax.barh(grouped.index, grouped.values, color=PALETTE[:len(grouped)], edgecolor="none")
+        bars = ax.barh(grouped.index, grouped.values,
+                       color=PALETTE[:len(grouped)], edgecolor="none")
         ax.set_xlabel(val.replace("_"," ").title(), fontsize=9)
         ax.tick_params(labelsize=8)
         for bar, v in zip(bars, grouped.values):
@@ -68,7 +75,6 @@ def generate_pdf(df, stats, insights_text, filename="analysis_report.pdf"):
     doc = SimpleDocTemplate(filename, pagesize=A4,
                              rightMargin=1.5*cm, leftMargin=1.5*cm,
                              topMargin=1.5*cm, bottomMargin=1.5*cm)
-    styles = getSampleStyleSheet()
     story = []
 
     header_style = ParagraphStyle("hdr", fontSize=18, fontName="Helvetica-Bold",
@@ -151,13 +157,11 @@ def generate_pdf(df, stats, insights_text, filename="analysis_report.pdf"):
             ("RIGHTPADDING", (0,0), (-1,-1), 4),
         ]))
         story.append(chart_table)
-    elif bar_buf:
-        story.append(Image(bar_buf, width=17*cm, height=6*cm))
 
     story.append(Spacer(1, 0.4*cm))
     story.append(Paragraph("AI Business Insights", section_style))
     insight_style = ParagraphStyle("ins", fontSize=9, fontName="Helvetica",
-                                    textColor=BLACK, leading=16, spaceBefore=4,
+                                    textColor=BLACK, leading=16,
                                     leftIndent=10, rightIndent=10)
     insight_box_data = [[Paragraph(insights_text.replace("\n\n", "<br/><br/>"), insight_style)]]
     insight_box = Table(insight_box_data, colWidths=[17*cm])
