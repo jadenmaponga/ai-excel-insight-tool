@@ -15,9 +15,8 @@ from pdf_report import generate_pdf
 # ── Page config ────────────────────────────────────────────────────────────────
 st.set_page_config(
     page_title="DataLens — Business Intelligence",
-    page_icon="📊",
+    page_icon="🔍",
     layout="wide",
-    initial_sidebar_state="collapsed",
 )
 
 # ── Custom CSS ─────────────────────────────────────────────────────────────────
@@ -127,7 +126,7 @@ st.markdown("""
 # ── Hero header ────────────────────────────────────────────────────────────────
 st.markdown("""
 <div class="hero">
-  <h1>📊 DataLens</h1>
+  <h1>DataLens</h1>
   <p>Upload any Excel or CSV file — your data is automatically cleaned, visualized, and analyzed by AI.</p>
 </div>
 """, unsafe_allow_html=True)
