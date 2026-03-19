@@ -126,7 +126,7 @@ st.markdown("""
 # ── Hero header ────────────────────────────────────────────────────────────────
 st.markdown("""
 <div class="hero">
-  <h1>DataLens</h1>
+  <h1>🔍 DataLens</h1>
   <p>Upload any Excel or CSV file — your data is automatically cleaned, visualized, and analyzed by AI.</p>
 </div>
 """, unsafe_allow_html=True)
