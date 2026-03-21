@@ -12,6 +12,32 @@ from analytics import auto_charts, quick_stats
 from insights  import generate_insights
 from pdf_report import generate_pdf
 
+# ── Freemium Session State ──────────────────────────────────────
+if "upload_count" not in st.session_state:
+    st.session_state.upload_count = 0
+if "is_pro" not in st.session_state:
+    st.session_state.is_pro = False
+
+    FREE_UPLOAD_LIMIT = 3
+FREE_ROW_LIMIT = 500
+def show_upgrade_banner():
+    st.markdown("""
+    <div style='background:#EFF6FF;border:2px solid #2563EB;
+    border-radius:16px;padding:32px;text-align:center;margin:20px 0'>
+    <h2 style='color:#1E3A8A;margin-bottom:8px'>🔒 Upgrade to DataLens Pro</h2>
+    <p style='color:#64748B;font-size:1rem;margin-bottom:16px'>
+    You have reached the free limit. Upgrade to unlock unlimited uploads,
+    PDF reports and full AI insights.</p>
+    <div style='font-size:2rem;font-weight:800;color:#2563EB;margin-bottom:4px'>
+    AED 49<span style='font-size:1rem;font-weight:400'>/month</span></div>
+    <p style='color:#94A3B8;font-size:0.85rem;margin-bottom:20px'>Cancel anytime</p>
+    <a href='mailto:mapongajosh2@gmail.com?subject=DataLens Pro Upgrade'
+    style='background:#2563EB;color:white;padding:14px 32px;
+    border-radius:10px;text-decoration:none;font-weight:600;
+    font-size:1rem;display:inline-block'>
+    Upgrade Now — AED 49/month →</a>
+    </div>
+    """, unsafe_allow_html=True)
 # ── Page config ────────────────────────────────────────────────────────────────
 st.set_page_config(
     page_title="DataLens — Business Intelligence",
@@ -139,6 +165,14 @@ uploaded = st.file_uploader(
     help="Supports .xlsx, .xls, and .csv files"
 )
 
+# ── Freemium upload limit check ─────────────────────────────────
+if uploaded:
+    if not st.session_state.is_pro:
+        st.session_state.upload_count += 1
+        if st.session_state.upload_count > FREE_UPLOAD_LIMIT:
+            show_upgrade_banner()
+            st.stop()
+
 if not uploaded:
     st.info("👆 Upload a file to get started. The tool will auto-clean your data and generate insights.")
     st.stop()
@@ -147,6 +181,10 @@ if not uploaded:
 # ── Process ────────────────────────────────────────────────────────────────────
 with st.spinner("Cleaning and analysing your dataset…"):
     cleaned_df, changes = clean_dataset(uploaded)
+    # Row limit for free users
+if not st.session_state.is_pro and len(cleaned_df) > FREE_ROW_LIMIT:
+    st.warning(f"⚠️ Free plan limited to {FREE_ROW_LIMIT} rows. Showing first {FREE_ROW_LIMIT} rows only.")
+    cleaned_df = cleaned_df.head(FREE_ROW_LIMIT)
     stats   = quick_stats(cleaned_df)
     charts  = auto_charts(cleaned_df)
 
@@ -255,18 +293,30 @@ with tab_ai:
         st.info("Click **Generate Insights** above to get an AI analysis of your dataset.")
 
     st.markdown("---")
-    if st.button("Generate PDF Report"):
-        with st.spinner("Building PDF report..."):
-            from insights import generate_insights as gi
-            insights_text = gi(cleaned_df, stats)
-            pdf_path = generate_pdf(cleaned_df, stats, insights_text, "report.pdf")
-            with open(pdf_path, "rb") as f:
-                st.download_button(
-                    "⬇ Download PDF Report",
-                    data=f.read(),
-                    file_name="analysis_report.pdf",
-                    mime="application/pdf"
+if st.session_state.is_pro:
+      if st.button("Generate PDF Report"):
+          with st.spinner("Building PDF report..."):
+              from insights import generate_insights as gi
+              insights_text = gi(cleaned_df, stats)
+              pdf_path = generate_pdf(cleaned_df, stats, insights_text, "report.pdf")
+              with open(pdf_path, "rb") as f:
+                  st.download_button(
+                      "⬇ Download PDF Report",
+                      data=f.read(),
+                      file_name="analysis_report.pdf",
+                      mime="application/pdf"
                 )
+  else:
+    st.markdown("""
+    <div style='background:#F8FAFC;border:1px solid #E2E8F0;
+    border-radius:10px;padding:16px;text-align:center'>
+    <p style='color:#64748B;margin:0'>🔒 PDF reports are available on 
+    <strong>DataLens Pro</strong> — AED 49/month</p>
+    <a href='mailto:mapongajosh2@gmail.com?subject=DataLens Pro Upgrade'
+    style='color:#2563EB;font-weight:600;text-decoration:none'>
+    Upgrade Now →</a>
+    </div>
+    """, unsafe_allow_html=True)
 
 with tab_raw:
     st.markdown('<div class="section-header">Original Uploaded Data</div>', unsafe_allow_html=True)
