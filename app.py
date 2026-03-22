@@ -18,24 +18,38 @@ if "upload_count" not in st.session_state:
 if "is_pro" not in st.session_state:
     st.session_state.is_pro = False
 
-    FREE_UPLOAD_LIMIT = 3
+FREE_UPLOAD_LIMIT = 3
 FREE_ROW_LIMIT = 500
 def show_upgrade_banner():
     st.markdown("""
-    <div style='background:#EFF6FF;border:2px solid #2563EB;
-    border-radius:16px;padding:32px;text-align:center;margin:20px 0'>
-    <h2 style='color:#1E3A8A;margin-bottom:8px'>🔒 Upgrade to DataLens Pro</h2>
-    <p style='color:#64748B;font-size:1rem;margin-bottom:16px'>
-    You have reached the free limit. Upgrade to unlock unlimited uploads,
+    <div style='background:linear-gradient(135deg,#EFF6FF,#F0FDF4);
+    border:2px solid #2563EB;border-radius:16px;padding:32px;
+    text-align:center;margin:20px 0'>
+    <div style='font-size:2.5rem;margin-bottom:8px'>🔒</div>
+    <h2 style='color:#1E3A8A;margin-bottom:8px'>
+    You have reached the free limit</h2>
+    <p style='color:#64748B;font-size:1rem;margin-bottom:8px'>
+    Free plan includes 3 uploads per session.</p>
+    <p style='color:#64748B;font-size:1rem;margin-bottom:20px'>
+    Upgrade to DataLens Pro for unlimited uploads,
     PDF reports and full AI insights.</p>
-    <div style='font-size:2rem;font-weight:800;color:#2563EB;margin-bottom:4px'>
-    AED 49<span style='font-size:1rem;font-weight:400'>/month</span></div>
-    <p style='color:#94A3B8;font-size:0.85rem;margin-bottom:20px'>Cancel anytime</p>
-    <a href='mailto:mapongajosh2@gmail.com?subject=DataLens Pro Upgrade'
-    style='background:#2563EB;color:white;padding:14px 32px;
+    <div style='font-size:2.2rem;font-weight:800;color:#2563EB;
+    margin-bottom:4px'>AED 49
+    <span style='font-size:1rem;font-weight:400;color:#64748B'>
+    /month</span></div>
+    <p style='color:#94A3B8;font-size:0.82rem;margin-bottom:24px'>
+    Cancel anytime · No contracts</p>
+    <a href='mailto:mapongajos@gmail.com?subject=DataLens%20Pro%20Upgrade%20Request&body=Hi%20Joshua%2C%0A%0AI%20would%20like%20to%20upgrade%20to%20DataLens%20Pro%20(AED%2049%2Fmonth).%0A%0APlease%20send%20me%20the%20payment%20details.%0A%0AThank%20you'
+    style='background:#2563EB;color:white;padding:14px 36px;
     border-radius:10px;text-decoration:none;font-weight:600;
     font-size:1rem;display:inline-block'>
     Upgrade Now — AED 49/month →</a>
+    <br>
+    <p style='color:#94A3B8;font-size:0.8rem;margin-top:12px'>
+    Email us: 
+    <a href='mailto:mapongajos@gmail.com'
+    style='color:#2563EB;text-decoration:none'>
+    mapongajos@gmail.com</a></p>
     </div>
     """, unsafe_allow_html=True)
 # ── Page config ────────────────────────────────────────────────────────────────
@@ -180,13 +194,14 @@ if not uploaded:
 
 # ── Process ────────────────────────────────────────────────────────────────────
 with st.spinner("Cleaning and analysing your dataset…"):
-    cleaned_df, changes = clean_dataset(uploaded)
-    # Row limit for free users
+   cleaned_df, changes = clean_dataset(uploaded)
+
 if not st.session_state.is_pro and len(cleaned_df) > FREE_ROW_LIMIT:
     st.warning(f"⚠️ Free plan limited to {FREE_ROW_LIMIT} rows. Showing first {FREE_ROW_LIMIT} rows only.")
     cleaned_df = cleaned_df.head(FREE_ROW_LIMIT)
-    stats   = quick_stats(cleaned_df)
-    charts  = auto_charts(cleaned_df)
+
+stats = quick_stats(cleaned_df)
+charts = auto_charts(cleaned_df)
 
 
 # ── KPI row ────────────────────────────────────────────────────────────────────
@@ -306,15 +321,49 @@ if st.session_state.is_pro:
                       file_name="analysis_report.pdf",
                       mime="application/pdf"
                 )
-  else:
+else:
     st.markdown("""
-    <div style='background:#F8FAFC;border:1px solid #E2E8F0;
-    border-radius:10px;padding:16px;text-align:center'>
-    <p style='color:#64748B;margin:0'>🔒 PDF reports are available on 
-    <strong>DataLens Pro</strong> — AED 49/month</p>
-    <a href='mailto:mapongajosh2@gmail.com?subject=DataLens Pro Upgrade'
-    style='color:#2563EB;font-weight:600;text-decoration:none'>
-    Upgrade Now →</a>
+    <div style='background:linear-gradient(135deg,#EFF6FF,#F0FDF4);
+    border:2px solid #2563EB;border-radius:16px;padding:32px;
+    text-align:center;margin:20px 0'>
+    <div style='font-size:2rem;margin-bottom:8px'>🔒</div>
+    <h2 style='color:#1E3A8A;margin-bottom:8px;font-size:1.3rem'>
+    Unlock DataLens Pro</h2>
+    <p style='color:#64748B;margin-bottom:20px;font-size:0.95rem'>
+    Get unlimited uploads, professional PDF reports,<br>
+    full AI insights and priority support.</p>
+    <table style='margin:0 auto 24px;border-collapse:collapse;
+    text-align:left'>
+    <tr><td style='padding:5px 12px;color:#059669;font-size:0.9rem'>
+    ✅ Unlimited file uploads</td>
+    <td style='padding:5px 12px;color:#059669;font-size:0.9rem'>
+    ✅ PDF report download</td></tr>
+    <tr><td style='padding:5px 12px;color:#059669;font-size:0.9rem'>
+    ✅ Full AI business insights</td>
+    <td style='padding:5px 12px;color:#059669;font-size:0.9rem'>
+    ✅ Any file size</td></tr>
+    <tr><td style='padding:5px 12px;color:#059669;font-size:0.9rem'>
+    ✅ Download cleaned Excel</td>
+    <td style='padding:5px 12px;color:#059669;font-size:0.9rem'>
+    ✅ Priority support</td></tr>
+    </table>
+    <div style='font-size:2.2rem;font-weight:800;color:#2563EB;
+    margin-bottom:4px'>AED 49
+    <span style='font-size:1rem;font-weight:400;color:#64748B'>
+    /month</span></div>
+    <p style='color:#94A3B8;font-size:0.82rem;margin-bottom:24px'>
+    Cancel anytime · No contracts</p>
+    <a href='mailto:mapongajos@gmail.com?subject=DataLens%20Pro%20Upgrade%20Request&body=Hi%20Joshua%2C%0A%0AI%20would%20like%20to%20upgrade%20to%20DataLens%20Pro%20(AED%2049%2Fmonth).%0A%0APlease%20send%20me%20the%20payment%20details.%0A%0AThank%20you'
+    style='background:#2563EB;color:white;padding:14px 36px;
+    border-radius:10px;text-decoration:none;font-weight:600;
+    font-size:1rem;display:inline-block;margin-bottom:12px'>
+    Upgrade to Pro — AED 49/month →</a>
+    <br>
+    <p style='color:#94A3B8;font-size:0.8rem;margin-top:12px'>
+    Questions? Email us at 
+    <a href='mailto:mapongajos@gmail.com' 
+    style='color:#2563EB;text-decoration:none'>
+    mapongajos@gmail.com</a></p>
     </div>
     """, unsafe_allow_html=True)
 
