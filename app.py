@@ -18,6 +18,11 @@ if "upload_count" not in st.session_state:
 if "is_pro" not in st.session_state:
     st.session_state.is_pro = False
 
+# Owner bypass — ?owner=true unlocks Pro
+params = st.query_params
+if params.get("owner") == "true":
+    st.session_state.is_pro = True
+
 FREE_UPLOAD_LIMIT = 3
 FREE_ROW_LIMIT = 500
 def show_upgrade_banner():
