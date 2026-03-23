@@ -25,8 +25,28 @@ if params.get("owner") == "true":
 
 FREE_UPLOAD_LIMIT = 3
 FREE_ROW_LIMIT = 500
+
+WHATSAPP_LINK = "https://wa.me/971588784370?text=Hi%20Joshua%2C%20I%20want%20to%20upgrade%20to%20DataLens%20Pro%20(AED%2049%2Fmonth).%20Please%20send%20payment%20details."
+EMAIL_LINK = "mailto:mapongajos@gmail.com?subject=DataLens%20Pro%20Upgrade&body=Hi%20Joshua%2C%20I%20want%20to%20upgrade%20to%20DataLens%20Pro%20(AED%2049%2Fmonth).%20Please%20send%20payment%20details."
+
+def upgrade_buttons():
+    return f"""
+    <a href='{WHATSAPP_LINK}'
+    style='background:#25D366;color:white;padding:14px 36px;
+    border-radius:10px;text-decoration:none;font-weight:600;
+    font-size:1rem;display:inline-block;margin-bottom:12px'>
+    💬 Upgrade via WhatsApp →</a>
+    <br>
+    <a href='{EMAIL_LINK}'
+    style='color:#2563EB;text-decoration:none;font-size:0.9rem'>
+    ✉️ Or email us instead</a>
+    <br>
+    <p style='color:#94A3B8;font-size:0.8rem;margin-top:8px'>
+    We respond within 2 hours · UAE business hours</p>
+    """
+
 def show_upgrade_banner():
-    st.markdown("""
+    st.markdown(f"""
     <div style='background:linear-gradient(135deg,#EFF6FF,#F0FDF4);
     border:2px solid #2563EB;border-radius:16px;padding:32px;
     text-align:center;margin:20px 0'>
@@ -44,19 +64,10 @@ def show_upgrade_banner():
     /month</span></div>
     <p style='color:#94A3B8;font-size:0.82rem;margin-bottom:24px'>
     Cancel anytime · No contracts</p>
-    <a href='mailto:mapongajos@gmail.com?subject=DataLens%20Pro%20Upgrade%20Request&body=Hi%20Joshua%2C%0A%0AI%20would%20like%20to%20upgrade%20to%20DataLens%20Pro%20(AED%2049%2Fmonth).%0A%0APlease%20send%20me%20the%20payment%20details.%0A%0AThank%20you'
-    style='background:#2563EB;color:white;padding:14px 36px;
-    border-radius:10px;text-decoration:none;font-weight:600;
-    font-size:1rem;display:inline-block'>
-    Upgrade Now — AED 49/month →</a>
-    <br>
-    <p style='color:#94A3B8;font-size:0.8rem;margin-top:12px'>
-    Email us: 
-    <a href='mailto:mapongajos@gmail.com'
-    style='color:#2563EB;text-decoration:none'>
-    mapongajos@gmail.com</a></p>
+    {upgrade_buttons()}
     </div>
     """, unsafe_allow_html=True)
+
 # ── Page config ────────────────────────────────────────────────────────────────
 st.set_page_config(
     page_title="DataLens — Business Intelligence",
@@ -73,7 +84,6 @@ st.markdown("""
 
   .main { background: #F8FAFC; }
 
-  /* Header banner */
   .hero {
     background: linear-gradient(135deg, #1E3A8A 0%, #2563EB 50%, #0EA5E9 100%);
     border-radius: 16px;
@@ -94,7 +104,6 @@ st.markdown("""
   .hero h1 { font-size: 2rem; font-weight: 700; margin: 0 0 8px; }
   .hero p  { font-size: 1rem; opacity: 0.85; margin: 0; }
 
-  /* KPI cards */
   .kpi-card {
     background: white;
     border-radius: 12px;
@@ -107,7 +116,6 @@ st.markdown("""
                text-transform: uppercase; letter-spacing: 0.05em; }
   .kpi-value { font-size: 1.6rem; font-weight: 700; color: #1E293B; margin-top: 4px; }
 
-  /* Section headers */
   .section-header {
     font-size: 1rem; font-weight: 700; color: #1E293B;
     text-transform: uppercase; letter-spacing: 0.06em;
@@ -115,14 +123,12 @@ st.markdown("""
     margin: 28px 0 16px;
   }
 
-  /* Upload area */
   .stFileUploader > div > div {
     border: 2px dashed #93C5FD !important;
     border-radius: 12px !important;
     background: #EFF6FF !important;
   }
 
-  /* Change badge */
   .change-badge {
     display: inline-block;
     background: #ECFDF5;
@@ -135,7 +141,6 @@ st.markdown("""
     border: 1px solid #A7F3D0;
   }
 
-  /* Insight box */
   .insight-box {
     background: white;
     border-radius: 12px;
@@ -147,10 +152,8 @@ st.markdown("""
     white-space: pre-wrap;
   }
 
-  /* Dataframe styling */
   [data-testid="stDataFrame"] { border-radius: 10px; overflow: hidden; }
 
-  /* Button */
   .stButton > button {
     background: #2563EB; color: white; border: none;
     border-radius: 8px; padding: 8px 20px;
@@ -158,10 +161,8 @@ st.markdown("""
   }
   .stButton > button:hover { background: #1D4ED8; }
 
-  /* Tab styling */
   .stTabs [data-baseweb="tab"] { font-weight: 600; }
 
-  /* Hide Streamlit branding */
   #MainMenu {visibility: hidden;}
   footer    {visibility: hidden;}
 </style>
@@ -259,7 +260,6 @@ with tab_clean:
     st.markdown('<div class="section-header">Cleaned Dataset</div>', unsafe_allow_html=True)
     st.dataframe(cleaned_df, use_container_width=True)
 
-    # Download cleaned file
     buf = io.BytesIO()
     cleaned_df.to_excel(buf, index=False)
     st.download_button(
@@ -313,65 +313,58 @@ with tab_ai:
         st.info("Click **Generate Insights** above to get an AI analysis of your dataset.")
 
     st.markdown("---")
-if st.session_state.is_pro:
-      if st.button("Generate PDF Report"):
-          with st.spinner("Building PDF report..."):
-              from insights import generate_insights as gi
-              insights_text = gi(cleaned_df, stats)
-              pdf_path = generate_pdf(cleaned_df, stats, insights_text, "report.pdf")
-              with open(pdf_path, "rb") as f:
-                  st.download_button(
-                      "⬇ Download PDF Report",
-                      data=f.read(),
-                      file_name="analysis_report.pdf",
-                      mime="application/pdf"
-                )
-else:
-    st.markdown("""
-    <div style='background:linear-gradient(135deg,#EFF6FF,#F0FDF4);
-    border:2px solid #2563EB;border-radius:16px;padding:32px;
-    text-align:center;margin:20px 0'>
-    <div style='font-size:2rem;margin-bottom:8px'>🔒</div>
-    <h2 style='color:#1E3A8A;margin-bottom:8px;font-size:1.3rem'>
-    Unlock DataLens Pro</h2>
-    <p style='color:#64748B;margin-bottom:20px;font-size:0.95rem'>
-    Get unlimited uploads, professional PDF reports,<br>
-    full AI insights and priority support.</p>
-    <table style='margin:0 auto 24px;border-collapse:collapse;
-    text-align:left'>
-    <tr><td style='padding:5px 12px;color:#059669;font-size:0.9rem'>
-    ✅ Unlimited file uploads</td>
-    <td style='padding:5px 12px;color:#059669;font-size:0.9rem'>
-    ✅ PDF report download</td></tr>
-    <tr><td style='padding:5px 12px;color:#059669;font-size:0.9rem'>
-    ✅ Full AI business insights</td>
-    <td style='padding:5px 12px;color:#059669;font-size:0.9rem'>
-    ✅ Any file size</td></tr>
-    <tr><td style='padding:5px 12px;color:#059669;font-size:0.9rem'>
-    ✅ Download cleaned Excel</td>
-    <td style='padding:5px 12px;color:#059669;font-size:0.9rem'>
-    ✅ Priority support</td></tr>
-    </table>
-    <div style='font-size:2.2rem;font-weight:800;color:#2563EB;
-    margin-bottom:4px'>AED 49
-    <span style='font-size:1rem;font-weight:400;color:#64748B'>
-    /month</span></div>
-    <p style='color:#94A3B8;font-size:0.82rem;margin-bottom:24px'>
-    Cancel anytime · No contracts</p>
-    <a href='mailto:mapongajos@gmail.com?subject=DataLens%20Pro%20Upgrade%20Request&body=Hi%20Joshua%2C%0A%0AI%20would%20like%20to%20upgrade%20to%20DataLens%20Pro%20(AED%2049%2Fmonth).%0A%0APlease%20send%20me%20the%20payment%20details.%0A%0AThank%20you'
-    style='background:#2563EB;color:white;padding:14px 36px;
-    border-radius:10px;text-decoration:none;font-weight:600;
-    font-size:1rem;display:inline-block;margin-bottom:12px'>
-    Upgrade to Pro — AED 49/month →</a>
-    <br>
-    <p style='color:#94A3B8;font-size:0.8rem;margin-top:12px'>
-    Questions? Email us at 
-    <a href='mailto:mapongajos@gmail.com' 
-    style='color:#2563EB;text-decoration:none'>
-    mapongajos@gmail.com</a></p>
-    </div>
-    """, unsafe_allow_html=True)
 
+    if st.session_state.is_pro:
+        if st.button("Generate PDF Report"):
+            with st.spinner("Building PDF report..."):
+                from insights import generate_insights as gi
+                insights_text = gi(cleaned_df, stats)
+                pdf_path = generate_pdf(cleaned_df, stats, insights_text, "report.pdf")
+                with open(pdf_path, "rb") as f:
+                    st.download_button(
+                        "⬇ Download PDF Report",
+                        data=f.read(),
+                        file_name="analysis_report.pdf",
+                        mime="application/pdf"
+                    )
+    else:
+        st.markdown(f"""
+        <div style='background:linear-gradient(135deg,#EFF6FF,#F0FDF4);
+        border:2px solid #2563EB;border-radius:16px;padding:32px;
+        text-align:center;margin:20px 0'>
+        <div style='font-size:2rem;margin-bottom:8px'>🔒</div>
+        <h2 style='color:#1E3A8A;margin-bottom:8px;font-size:1.3rem'>
+        Unlock DataLens Pro</h2>
+        <p style='color:#64748B;margin-bottom:20px;font-size:0.95rem'>
+        Get unlimited uploads, professional PDF reports,<br>
+        full AI insights and priority support.</p>
+        <table style='margin:0 auto 24px;border-collapse:collapse;
+        text-align:left'>
+        <tr><td style='padding:5px 12px;color:#059669;font-size:0.9rem'>
+        ✅ Unlimited file uploads</td>
+        <td style='padding:5px 12px;color:#059669;font-size:0.9rem'>
+        ✅ PDF report download</td></tr>
+        <tr><td style='padding:5px 12px;color:#059669;font-size:0.9rem'>
+        ✅ Full AI business insights</td>
+        <td style='padding:5px 12px;color:#059669;font-size:0.9rem'>
+        ✅ Any file size</td></tr>
+        <tr><td style='padding:5px 12px;color:#059669;font-size:0.9rem'>
+        ✅ Download cleaned Excel</td>
+        <td style='padding:5px 12px;color:#059669;font-size:0.9rem'>
+        ✅ Priority support</td></tr>
+        </table>
+        <div style='font-size:2.2rem;font-weight:800;color:#2563EB;
+        margin-bottom:4px'>AED 49
+        <span style='font-size:1rem;font-weight:400;color:#64748B'>
+        /month</span></div>
+        <p style='color:#94A3B8;font-size:0.82rem;margin-bottom:24px'>
+        Cancel anytime · No contracts</p>
+        {upgrade_buttons()}
+        </div>
+        """, unsafe_allow_html=True)
+
+
+# ── Tab 4: Raw Data ────────────────────────────────────────────────────────────
 with tab_raw:
     st.markdown('<div class="section-header">Original Uploaded Data</div>', unsafe_allow_html=True)
     try:
